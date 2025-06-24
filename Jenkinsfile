@@ -14,7 +14,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout the latest code from the repository
-                git 'https://github.com/yon-samphorslita/DevOps-final.git'
+                git branch: 'terrain', url: 'https://github.com/yon-samphorslita/DevOps-final.git'
             }
         }
 
