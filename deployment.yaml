@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel-app
+  template:
+    metadata:
+      labels:
+        app: laravel-app
+    spec:
+      containers:
+        - name: web-server
+          image: yonsamphorslita/web-server:latest # Replace with the correct image name
+          ports:
+            - containerPort: 8080 # Exposing port for the website
+            - containerPort: 22   # Exposing port for SSH
+          volumeMounts:
+            - name: web-data
+              mountPath: /var/www/html
+        - name: mysql-db
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "Hello@123"
+            - name: MYSQL_DATABASE
+              value: "yonsamphorslita-db"  # Replace with your actual name
+          ports:
+            - containerPort: 3306  # Exposing MySQL port
+      volumes:
+        - name: web-data
+          emptyDir: {}  # Temporary directory for Laravel project files
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-app-service
+spec:
+  selector:
+    app: laravel-app
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+    - protocol: TCP
+      port: 22
+      targetPort: 22
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP
