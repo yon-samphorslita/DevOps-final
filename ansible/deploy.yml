@@ -1,0 +1,51 @@
+- name: Deploy Laravel Web Server
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Ensure Kubernetes is configured
+      shell: "kubectl config use-context default"
+      become: no
+
+    - name: Run git pull in the web server container
+      shell: |
+        kubectl exec -it laravel-app-deployment-5fcdcd8984-jj46n -c web-server -- bash -c 'cd /var/www/html && git reset --hard && git pull origin terrain'
+      become: no
+
+    - name: Install Composer dependencies
+      shell: |
+        kubectl exec -it laravel-app-deployment-5fcdcd8984-jj46n -c web-server -- bash -c 'cd /var/www/html && composer install --no-dev --optimize-autoloader'
+      become: no
+
+    - name: Install NPM dependencies
+      shell: |
+        kubectl exec -it laravel-app-deployment-5fcdcd8984-jj46n -c web-server -- bash -c 'cd /var/www/html && npm install --production'
+      become: no
+
+    - name: Check if SQLite database exists
+      shell: |
+        kubectl exec -it laravel-app-deployment-5fcdcd8984-jj46n -c web-server -- bash -c 'if [ ! -f /var/www/html/storage/database.sqlite ]; then touch /var/www/html/storage/database.sqlite; fi'
+      become: no
+
+    - name: Set correct permissions on SQLite database
+      shell: |
+        kubectl exec -it laravel-app-deployment-5fcdcd8984-jj46n -c web-server -- bash -c 'chmod -R 777 /var/www/html/storage'
+      become: no
+
+    - name: Ensure PHPUnit and Pest are installed
+      shell: |
+        kubectl exec -it laravel-app-deployment-5fcdcd8984-jj46n -c web-server -- bash -c 'cd /var/www/html && composer require pestphp/pest --dev'
+      become: no
+
+    - name: Run tests on SQLite DB (test DB)
+      shell: |
+        kubectl exec -it laravel-app-deployment-5fcdcd8984-jj46n -c web-server -- bash -c 'cd /var/www/html && php artisan migrate --env=testing --force && ./vendor/bin/pest'
+      become: no
+
+    - name: Backup MySQL database
+      shell: |
+        kubectl exec -it laravel-app-deployment-5fcdcd8984-jj46n -c mysql-db -- bash -c "mysqldump -u root -pHello@123 yonsamphorslita-db > /tmp/db-backup.sql"
+      become: no
+
+    - name: Copy MySQL backup to host
+      shell: "kubectl cp laravel-app-deployment-5fcdcd8984-jj46n:/tmp/db-backup.sql ./db-backup.sql"
+      become: no

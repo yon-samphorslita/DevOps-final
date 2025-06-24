@@ -1,0 +1,2 @@
+[webserver]
+laravel-app-deployment-6d8585cc7f-qgbhg ansible_host=10.42.0.20 ansible_user=root ansible_ssh_port=22
