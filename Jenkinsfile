@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        EMAIL_RECIPIENTS = 'srengty@gmail.com'
+        EMAIL_RECIPIENTS = 'srengty@gmail.com, yon.samphorslita@gmail.com'
     }
 
     triggers {
